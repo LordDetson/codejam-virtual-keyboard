@@ -1,0 +1,53 @@
+#keyboard {
+    position: absolute;
+}
+
+.classicBtn {
+    width: 40px;
+    height: 40px;
+    background-color: #3a424e;
+    border-radius: 3px;
+    border: none;
+    color: white;
+    font-size: 16px;
+    margin: 4px 2px;
+}
+
+.dark {
+    background-color: #1c232e;
+    color: #808080;
+}
+
+.active {
+    background-color: #5571ee;
+    color: #1c232e;
+}
+
+#Backspace {
+    width: 100px;
+}
+
+#Tab {
+    width: 55px;
+}
+
+#CapsLock {
+    width: 100px;
+}
+
+#Enter {
+    width: 83px;
+}
+
+#ShiftLeft {
+    width: 100px;
+}
+
+#ControlLeft,
+#ControlRight{
+    width: 60px;
+}
+
+#Space {
+    width: 280px;
+}
