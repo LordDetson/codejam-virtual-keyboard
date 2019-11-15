@@ -21,8 +21,10 @@ class Button {
     createBtn() {
         let btn = document.createElement("button");
         btn.id = this.code;
-        btn.innerHTML = this.getKey(currLang, isShift);
+        btn.innerHTML = this.getKey(isShift);
         btn.className = this.style;
+        btn.addEventListener("mousedown", handleMouseDown);
+        btn.addEventListener("mouseup", handleMouseUp);
         return btn;
     }
 }
@@ -107,8 +109,15 @@ keyboard[4][8] = new Button('ArrowRight', {'name': '&#8594;'}, 'dark');
 let arrLang = ["en", "ru"];
 let pairOfKeyForChangeLang = ["AltLeft", "ShiftLeft"];
 let arrCodeKeyDownNow = [];
+let currLangStorage = {'currLang': 0};
 let currLang = 0;
+if (localStorage.getItem('currLang')) {
+    currLang = parseInt(JSON.parse(localStorage.getItem('currLang'))['currLang']);
+} else {
+    localStorage.setItem('currLang', JSON.stringify(currLangStorage));
+}
 let isShift = false;
+document.body.innerHTML = "<p>AltLeft + ShiftLeft - сочитание клавишь для смены языка;<br>Кликните на Shift, чтобы сменить регистр;</p>";
 let inputArea = document.createElement("textarea");
 inputArea.cols = 91;
 inputArea.rows = 6;
@@ -139,7 +148,7 @@ function handleKeydown(e) {
             changeLang();
         }
     }
-    isShiftCode(e.code);
+    doShiftCode(e.code);
 }
 
 function handleKeyup(e) {
@@ -152,11 +161,43 @@ function handleKeyup(e) {
         }
     }
     delete arrCodeKeyDownNow[arrCodeKeyDownNow.indexOf(e.code)];
-    isShiftCode(e.code);
+    doShiftCode(e.code);
+}
+
+function handleMouseDown(e) {
+    let event = new Event("keydown", {bubbles: true});
+    event.code = e.target.id;
+    for (let i = 0; i < keyboard.length; i++) {
+        for (let j = 0; j < keyboard[i].length; j++) {
+            if (keyboard[i][j].code === event.code && !keyboard[i][j].keys['name']) {
+                inputArea.value += keyboard[i][j].getKey(isShift);
+            }
+        }
+    }
+    if (event.code === "Space") {
+        inputArea.value += " ";
+    }
+    inputArea.focus();
+    inputArea.dispatchEvent(event);
+}
+
+function handleMouseUp(e) {
+    let event = new Event("keyup", {bubbles: true});
+    event.code = e.target.id;
+    inputArea.dispatchEvent(event);
+    inputArea.focus();
+    doShiftCode(event.code);
+    if (isShiftCode(event.code) && isShift) {
+        e.target.className += " active";
+    }
 }
 
 function isShiftCode(code) {
-    if (code === "ShiftLeft" || code === "ShiftRight") {
+    return code === "ShiftLeft" || code === "ShiftRight";
+}
+
+function doShiftCode(code) {
+    if (isShiftCode(code)) {
         isShift = !isShift;
         changeKeyboard(isShift);
     }
@@ -168,6 +209,8 @@ function changeLang() {
     } else {
         currLang = 0;
     }
+    currLangStorage['currLang'] = currLang;
+    localStorage.setItem('currLang', JSON.stringify(currLangStorage));
     changeKeyboard(isShift);
 }
 
