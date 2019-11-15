@@ -6,16 +6,24 @@ class Button {
         this.style = style + " classicBtn";
     }
 
-    getKey(leng, isShift) {
+    getKey(isShift) {
         if (this.keys['name']) {
             return this.keys['name'];
         }
-        let arr = this.keys[leng];
+        let arr = this.keys[arrLang[currLang]];
         if (isShift) {
             return arr[1];
         } else {
             return arr[0];
         }
+    }
+
+    createBtn() {
+        let btn = document.createElement("button");
+        btn.id = this.code;
+        btn.innerHTML = this.getKey(currLang, isShift);
+        btn.className = this.style;
+        return btn;
     }
 }
 
@@ -71,7 +79,7 @@ keyboard[2][11] = new Button('Quote', {'en': ['\'', '\"'], 'ru': ['э', 'Э']});
 keyboard[2][12] = new Button('Enter', {'name': 'Enter'}, 'dark');
 
 keyboard[3][0] = new Button('ShiftLeft', {'name': 'Shift'}, 'dark');
-keyboard[3][1] = new Button('IntlBackslash', {'en': ['\\', '|'], 'ru': ['\\', '|']});
+keyboard[3][1] = new Button('IntlBackslash', {'en': ['\\', '|'], 'ru': ['\\', '/']});
 keyboard[3][2] = new Button('KeyZ', {'en': ['z', 'Z'], 'ru': ['я', 'Я']});
 keyboard[3][3] = new Button('KeyX', {'en': ['x', 'X'], 'ru': ['ч', 'Ч']});
 keyboard[3][4] = new Button('KeyC', {'en': ['c', 'C'], 'ru': ['с', 'С']});
@@ -79,8 +87,8 @@ keyboard[3][5] = new Button('KeyV', {'en': ['v', 'V'], 'ru': ['м', 'М']});
 keyboard[3][6] = new Button('KeyB', {'en': ['b', 'B'], 'ru': ['и', 'И']});
 keyboard[3][7] = new Button('KeyN', {'en': ['n', 'N'], 'ru': ['т', 'Т']});
 keyboard[3][8] = new Button('KeyM', {'en': ['m', 'M'], 'ru': ['ь', 'Ь']});
-keyboard[3][9] = new Button('Period', {'en': ['.', '>'], 'ru': ['б', 'Б']});
-keyboard[3][10] = new Button('Comma', {'en': [',', '<'], 'ru': ['ю', 'Ю']});
+keyboard[3][9] = new Button('Comma', {'en': [',', '<'], 'ru': ['б', 'Б']});
+keyboard[3][10] = new Button('Period', {'en': ['.', '>'], 'ru': ['ю', 'Ю']});
 keyboard[3][11] = new Button('Slash', {'en': ['/', '?'], 'ru': ['.', ',']});
 keyboard[3][12] = new Button('ArrowUp', {'name': '&uarr;'}, 'dark');
 keyboard[3][13] = new Button('ShiftRight', {'name': 'Shift'}, 'dark');
@@ -95,7 +103,11 @@ keyboard[4][6] = new Button('ArrowLeft', {'name': '&#8592;'}, 'dark');
 keyboard[4][7] = new Button('ArrowDown', {'name': '&#8595;'}, 'dark');
 keyboard[4][8] = new Button('ArrowRight', {'name': '&#8594;'}, 'dark');
 
-let leng = 'en';
+
+let arrLang = ["en", "ru"];
+let pairOfKeyForChangeLang = ["AltLeft", "ShiftLeft"];
+let arrCodeKeyDownNow = [];
+let currLang = 0;
 let isShift = false;
 let inputArea = document.createElement("textarea");
 inputArea.cols = 91;
@@ -109,11 +121,7 @@ for (let i = 0; i < keyboard.length; i++) {
     let divRow = document.createElement("div");
     divRow.id = "row" + i;
     for (let j = 0; j < keyboard[i].length; j++) {
-        let btn = document.createElement("button");
-        btn.id = keyboard[i][j].code;
-        btn.innerHTML = keyboard[i][j].getKey(leng, isShift);
-        btn.className = keyboard[i][j].style;
-        divRow.appendChild(btn);
+        divRow.appendChild(keyboard[i][j].createBtn());
     }
     divKeyboard.appendChild(divRow);
 }
@@ -123,6 +131,15 @@ document.body.appendChild(divKeyboard);
 function handleKeydown(e) {
     let btn = document.getElementById(e.code);
     btn.className += " active";
+    arrCodeKeyDownNow.push(e.code);
+    for (let i = arrCodeKeyDownNow.length - 2; i >= 0 && arrCodeKeyDownNow.length > 1; i--) {
+        if (
+            arrCodeKeyDownNow[i] === pairOfKeyForChangeLang[0] &&
+            arrCodeKeyDownNow[i + 1] === pairOfKeyForChangeLang[1]) {
+            changeLang();
+        }
+    }
+    isShiftCode(e.code);
 }
 
 function handleKeyup(e) {
@@ -132,6 +149,32 @@ function handleKeyup(e) {
             if (keyboard[i][j].code === e.code) {
                 btn.className = keyboard[i][j].style;
             }
+        }
+    }
+    delete arrCodeKeyDownNow[arrCodeKeyDownNow.indexOf(e.code)];
+    isShiftCode(e.code);
+}
+
+function isShiftCode(code) {
+    if (code === "ShiftLeft" || code === "ShiftRight") {
+        isShift = !isShift;
+        changeKeyboard(isShift);
+    }
+}
+
+function changeLang() {
+    if (currLang < arrLang.length - 1) {
+        currLang++;
+    } else {
+        currLang = 0;
+    }
+    changeKeyboard(isShift);
+}
+
+function changeKeyboard(isShift) {
+    for (let i = 0; i < keyboard.length; i++) {
+        for (let j = 0; j < keyboard[i].length; j++) {
+            document.getElementById(keyboard[i][j].code).innerHTML = keyboard[i][j].getKey(isShift);
         }
     }
 }
